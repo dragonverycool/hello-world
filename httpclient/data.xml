@@ -1,0 +1,41 @@
+<interface-list>
+  <interface name="获取城市列表-测试">
+      <URL>192.168.1.94:8080/user/city/listArea</URL>
+      <json>{"cityId":440100}</json>
+    </interface>
+  <interface name="获取城市列表-本地">
+      <URL>localhost:8080/user/city/listArea</URL>
+      <json>{"cityId":440100}</json>
+    </interface>
+  <interface name="获取城市要求上传的证件照-测试">
+      <URL>http://192.168.1.94:8080/user/config/userCertificateTypes/110100</URL>
+      <json />
+    </interface>
+  <interface name="检索已生成订单列表-本地">
+      <URL>localhost:8080/admin/confirmCompnayOrder/comfirmOrderList</URL>
+      <json>{"companyName":"测试1","isBack":true,"payType":1,"state":10,"token":"f62a41774d3d8e4e3ba7bd751e7a135a","page":1,"size":10}</json>
+    </interface>
+  <interface name="交付人员列表-本地">
+      <address />
+      <method />
+      <URL>localhost:8080/admin/deliver/deliverList</URL>
+      <json>{"companyId":50701,"name":"02","companyName":"测试","accountId":440100}</json>
+    </interface>
+  <interface name="停保人员列表-本地">
+      <address />
+      <method />
+      <URL>localhost:8080/admin/deliver/stopUserList</URL>
+      <json>{
+    "companyName": "测试", 
+    "accountId": 440100, 
+    "name": "02", 
+    "companyId": 50701
+}</json>
+    </interface>
+  <interface name="">
+      <address />
+      <method />
+      <URL />
+      <json />
+    </interface>
+</interface-list>
