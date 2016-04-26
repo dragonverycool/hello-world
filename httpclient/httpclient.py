@@ -10,7 +10,8 @@ from wx.lib.embeddedimage import PyEmbeddedImage
 from wx.lib.pubsub.utils.xmltopicdefnprovider import indent
 from threading import Thread
 from wx.lib.pubsub import pub as Publisher
-import time
+import time as mytime
+import hashlib
 
 reload(sys)
 sys.setdefaultencoding('utf-8')
@@ -39,6 +40,9 @@ ayg = PyEmbeddedImage(
     "SdL6/5zmNjSzeRFZk0dARCC6300EafpNp1V5Hrj37NRN23rW5YE3J6zXRvJZLjjA5tGRMwJw"
     "fs+eNats5VxeQNKyLqpOwDd9MNLah13ZfeCEqgzdKYlOgL1n5+bRkTP17/8Ay4/gDHiq/QoA"
     "AAAASUVORK5CYII=")
+
+APIKEY = None
+SECRETKEY = None
 
 class ExamplePanel(wx.Panel):
     def __init__(self, parent):
@@ -88,8 +92,10 @@ class ExamplePanel(wx.Panel):
         self.nb = wx.Notebook(self, size=(570, 450))
         self.jsonPage = cjlists(self.nb)
         self.resultPage = cjview(self.nb)
+        self.loginPage = loginTab(self.nb)
         self.nb.AddPage(self.jsonPage, u"JSON参数")
         self.nb.AddPage(self.resultPage, u"运行结果")
+        self.nb.AddPage(self.loginPage, u"登录")
         grid.Add(self.nb, pos=(2,0), span=(1,5), border=1)
 
         # 保存按钮
@@ -117,6 +123,14 @@ class ExamplePanel(wx.Panel):
         btnSizer.Add(self.closeBtn,  flag=wx.LEFT,border=30)
         self.Bind(wx.EVT_BUTTON, self.closebutton, self.closeBtn)
         self.Bind(wx.EVT_CLOSE, self.closewindow)
+
+        #登录按钮
+        self.Bind(wx.EVT_BUTTON, self.login, self.loginPage.loginBtn)
+
+        #登录框绑定数据
+        for login in root.findall('login'):
+            self.loginPage.loginURL.Append(login.find("URL").text)
+        self.Bind(wx.EVT_COMBOBOX, self.loginSelected, self.loginPage.loginURL)
 
         grid.Add(btnSizer, pos=(3,0), span=(1,5), flag=wx.EXPAND|wx.LEFT|wx.RIGHT,border=0)
 
@@ -164,6 +178,10 @@ class ExamplePanel(wx.Panel):
             self.listBox.Append(interface.get("name"))
 
     def Delete(self, event):
+        dlg = wx.MessageDialog(None, u"添加一个不容易，确定要删？", u"提示", wx.YES_NO | wx.ICON_QUESTION)
+        if dlg.ShowModal() == wx.ID_NO:
+            return
+        dlg.Destroy()
         tree = ET.parse(xml_Path)
         root = tree.getroot()
         req = "./interface[@name='{0}']".format(self.listBox.GetStringSelection())
@@ -171,6 +189,10 @@ class ExamplePanel(wx.Panel):
         root.remove(node)
         tree.write(xml_Path,encoding='utf-8')
         self.listBox.Clear()
+        self.editUrl.Clear()
+        self.editName.Clear()
+        self.jsonPage.text.Clear()
+        self.resultPage.result.Clear()
         for interface in root.findall('interface'):
             self.listBox.Append(interface.get("name"))
 
@@ -203,9 +225,25 @@ class ExamplePanel(wx.Panel):
         root = tree.getroot()
         req = "./interface[@name='{0}']".format(self.listBox.GetStringSelection())
         node = root.findall(req)[0]
-        self.editName.SetValue(node.get("name"))
-        self.editUrl.SetValue(node.find("URL").text)
-        self.jsonPage.text.SetValue(node.find("json").text)
+        if node.get("name") != None:
+            self.editName.SetValue(node.get("name"))
+        if node.find("URL").text != None:
+            self.editUrl.SetValue(node.find("URL").text)
+        if node.find("json").text != None:
+            self.jsonPage.text.SetValue(node.find("json").text)
+
+    def loginSelected(self, event):
+        self.loginPage.loginName.Clear()
+        self.loginPage.loginPwd.Clear()
+        self.nb.SetSelection(2)
+        tree = ET.parse(xml_Path)
+        root = tree.getroot()
+        req = "./login[URL='{0}']".format(self.loginPage.loginURL.GetValue())
+        node = root.findall(req)[0]
+        if node.find("account").text != None:
+            self.loginPage.loginName.SetValue(node.find("account").text)
+        if node.find("pwd").text != None:
+            self.loginPage.loginPwd.SetValue(node.find("pwd").text)
 
     def OnSubmit(self, event):
         if self.editUrl.GetValue().strip()=="":
@@ -214,8 +252,18 @@ class ExamplePanel(wx.Panel):
         self.resultPage.result.SetValue(u"请求已提交，等待响应……")
         self.nb.SetSelection(1)
         try:
+            global APIKEY
+            global SECRETKEY
             url = self.editUrl.GetValue().replace("http://","")
             req = urllib2.Request("http://{0}".format(url))
+            if APIKEY != None:
+                timestamp =  long(mytime.time()*1000)
+                req.add_header('apikey', APIKEY)
+                if(SECRETKEY<APIKEY):
+                    req.add_header('sign', self.get_md5_value(str(timestamp) + SECRETKEY + APIKEY))
+                else:
+                    req.add_header('sign', self.get_md5_value(str(timestamp) + APIKEY + SECRETKEY))
+                req.add_header('timestamp', timestamp)
             if self.debug.IsChecked():
                 time = 10000
             else:
@@ -232,12 +280,40 @@ class ExamplePanel(wx.Panel):
             print e
             self.resultPage.result.SetValue(u"请求失败……")
             self.resultPage.result.AppendText(e.message)
+            self.nb.SetSelection(1)
         # finally:
         #     if httpClient:
         #         httpClient.close()
         print "Done"
         # global method
 
+    def get_md5_value(self, src):
+        myMd5 = hashlib.md5()
+        myMd5.update(src)
+        myMd5_Digest = myMd5.hexdigest()
+        return myMd5_Digest
+
+    def login(self, event):
+        global APIKEY
+        global SECRETKEY
+        try:
+            loginParam = {"username":self.loginPage.loginName.GetValue(),"password":self.loginPage.loginPwd.GetValue()}
+            url = self.loginPage.loginURL.GetValue().replace("http://","")
+            req = urllib2.Request("http://{0}".format(url))
+            params = urllib.urlencode(loginParam)
+            response = urllib2.urlopen(req, params, 3)
+            resultStr = response.read().decode('utf-8')
+            result = json.loads(resultStr)
+            if result["logined"] == True:
+                APIKEY = result["apikey"]
+                SECRETKEY = result["secretkey"]
+            self.resultPage.result.SetValue(resultStr)
+        except Exception, e:
+            print e
+            self.resultPage.result.SetValue(u"请求失败……")
+            self.resultPage.result.AppendText(e.message)
+        finally:
+            self.nb.SetSelection(1)
 
     def indent(elem, level=0):
         i = "\n" + level*"  "
@@ -281,6 +357,35 @@ class cjview(wx.Panel):
         self.result.SetBackgroundColour("#C9D2A4")
         self.sizer.Add(self.result,proportion=1,flag=wx.LEFT|wx.RIGHT|wx.EXPAND,border=0)
         self.SetSizer(self.sizer)
+        pass
+
+class loginTab(wx.Panel):
+    def __init__(self,parent):
+        wx.Panel.__init__(self, parent, style=wx.BORDER_THEME)
+        self.grid = wx.GridBagSizer(hgap=4, vgap=2)
+
+        self.lblURL = wx.StaticText(self, label=u"登录地址：")
+        self.grid.Add(self.lblURL, pos=(0,0))
+
+        self.loginURL = wx.ComboBox(self, size=(350, -1), style=wx.CB_DROPDOWN) #choices=self.sampleList
+        self.grid.Add(self.loginURL, pos=(0,1))
+
+        self.lblName = wx.StaticText(self, label=u"帐号：")
+        self.grid.Add(self.lblName, pos=(1,0))
+
+        self.loginName = wx.TextCtrl(self, size=(200,20))
+        self.grid.Add(self.loginName, pos=(1,1))
+
+        self.lblPwd = wx.StaticText(self, label=u"密码：")
+        self.grid.Add(self.lblPwd, pos=(2,0))
+
+        self.loginPwd = wx.TextCtrl(self, size=(200,20))
+        self.grid.Add(self.loginPwd, pos=(2,1))
+
+        self.loginBtn =wx.Button(self, label=u"登录",size=(80,30))
+        self.grid.Add(self.loginBtn, pos=(3,0))
+
+        self.SetSizer(self.grid)
         pass
 
 class HttpThread(Thread):
