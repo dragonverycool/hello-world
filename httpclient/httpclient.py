@@ -259,10 +259,12 @@ class ExamplePanel(wx.Panel):
             if APIKEY != None:
                 timestamp =  long(mytime.time()*1000)
                 req.add_header('apikey', APIKEY)
-                if(SECRETKEY<APIKEY):
-                    req.add_header('sign', self.get_md5_value(str(timestamp) + SECRETKEY + APIKEY))
-                else:
-                    req.add_header('sign', self.get_md5_value(str(timestamp) + APIKEY + SECRETKEY))
+                loginList = [str(timestamp), SECRETKEY, APIKEY]
+                loginList.sort()
+                # if(SECRETKEY<APIKEY):
+                req.add_header('sign', self.get_md5_value(str(loginList)))
+                # else:
+                #     req.add_header('sign', self.get_md5_value(str(timestamp) + APIKEY + SECRETKEY))
                 req.add_header('timestamp', timestamp)
             if self.debug.IsChecked():
                 time = 10000
