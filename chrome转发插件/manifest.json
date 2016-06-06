@@ -1,0 +1,30 @@
+{
+  "name": "爱员工接口测试--哥就像巴黎欧莱雅  你值得拥有",
+
+  "version": "1.0",
+
+  "manifest_version":2,
+
+  "description": "过滤URL并转发到指定地址，方便后端开发人员测试。可点击图标来开启和关闭过滤功能，右键 >> 选项 进行过滤条件配置",
+
+  "icons": {
+    "128": "ayg.png" 
+  },
+
+  "background": {
+    "scripts": ["background.js"],    
+    "persistent": true
+  },
+
+  "browser_action": {
+	"default_icon": "ayg_disenable.png"
+   },
+
+   "options_page": "options.html",
+
+   "permissions": ["webRequest", "webRequestBlocking",
+		   "tabs",
+		  "http://*/*",
+		  "https://*/*"
+		  ]
+}

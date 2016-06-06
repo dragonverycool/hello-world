@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://java.sun.com/xml/ns/javaee" xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" id="WebApp_ID" version="2.5">
+  <display-name>lunch</display-name>
+  <welcome-file-list>
+    <welcome-file>index.html</welcome-file>
+    <welcome-file>index.htm</welcome-file>
+    <welcome-file>index.jsp</welcome-file>
+    <welcome-file>default.html</welcome-file>
+    <welcome-file>default.htm</welcome-file>
+    <welcome-file>default.jsp</welcome-file>
+  </welcome-file-list>
+  <servlet>
+    <description></description>
+    <display-name>LunchServlet</display-name>
+    <servlet-name>LunchServlet</servlet-name>
+    <servlet-class>com.createw.lunch.servlet.LunchServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>LunchServlet</servlet-name>
+    <url-pattern>/LunchServlet</url-pattern>
+  </servlet-mapping>
+  <servlet>
+    <description></description>
+    <display-name>ShowXml</display-name>
+    <servlet-name>ShowXml</servlet-name>
+    <servlet-class>com.createw.lunch.servlet.ShowXml</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>ShowXml</servlet-name>
+    <url-pattern>/ShowXml</url-pattern>
+  </servlet-mapping>
+  <servlet>
+    <description></description>
+    <display-name>AddDish</display-name>
+    <servlet-name>AddDish</servlet-name>
+    <servlet-class>com.createw.lunch.servlet.AddDish</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>AddDish</servlet-name>
+    <url-pattern>/AddDish</url-pattern>
+  </servlet-mapping>
+  <servlet>
+    <description></description>
+    <display-name>del</display-name>
+    <servlet-name>del</servlet-name>
+    <servlet-class>com.createw.lunch.servlet.DelServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>del</servlet-name>
+    <url-pattern>/del</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <description></description>
+    <display-name>upload</display-name>
+    <servlet-name>upload</servlet-name>
+    <servlet-class>com.createw.lunch.servlet.UploadServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>upload</servlet-name>
+    <url-pattern>/upload</url-pattern>
+  </servlet-mapping>
+
+</web-app>
